@@ -6,9 +6,11 @@
 //
 
 import Foundation
+import CoreLocation
 
 protocol WeatherManagerDelegate {
     func didUpdateWeather(_ weatherData: WeatherData)
+    func didFailWithError(error: Error)
 }
 
 struct WeatherManager {
@@ -22,12 +24,17 @@ struct WeatherManager {
         performRequest(url)
     }
     
+    func fetchData(lat: CLLocationDegrees, lon: CLLocationDegrees) {
+        let url = "\(urlString)&lat=\(lat)&lon=\(lon)"
+        performRequest(url)
+    }
+    
     func performRequest(_ url: String) {
         if let url = URL(string: url) {
             let session = URLSession(configuration: .default)
             let task = session.dataTask(with: url) { (data, response, error) in
                 if error != nil {
-                    print(error!)
+                    delegate?.didFailWithError(error: error!)
                 } else {
                     if let safeData = data {
                         parseJSON(safeData)
@@ -54,7 +61,7 @@ struct WeatherManager {
             
             
         } catch {
-            print(error)
+            delegate?.didFailWithError(error: error)
         }
     }
 }
